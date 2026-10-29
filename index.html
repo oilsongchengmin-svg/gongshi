@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>工时榨汁机</title>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<style>
+/* Layout: one narrow job-ticket column. Inputs first; the checklist's navy header bar carries the answer; the break table below doubles as the ledger. */
+:root {
+  --bg: #eef1f5;
+  --surface: #ffffff;
+  --ink: #15233a;
+  --muted: #5f6c7d;
+  --faint: #a3adba;
+  --line: #dde3ea;
+  --field-line: #c2cbd7;
+  --accent: #1d3c69;
+  --on-accent: #ffffff;
+  --band: #1d3c69;
+  --band-ink: #ffffff;
+  --band-muted: #b9c8dc;
+  --deduct: #8a5c10;
+  --warn: #b0461b;
+  --focus: #3b6fb6;
+  --knob: #ffffff;
+  --font-num: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e141c; --surface: #172030; --ink: #e5eaf1; --muted: #9aa7b8; --faint: #5c6a7d;
+    --line: #273347; --field-line: #3a4a60; --accent: #86aee6; --on-accent: #0e141c;
+    --band: #1f3556; --band-ink: #f2f5f9; --band-muted: #a9bbd3; --deduct: #e0b25a;
+    --warn: #f08a5d; --focus: #86aee6; --knob: #e5eaf1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e141c; --surface: #172030; --ink: #e5eaf1; --muted: #9aa7b8; --faint: #5c6a7d;
+  --line: #273347; --field-line: #3a4a60; --accent: #86aee6; --on-accent: #0e141c;
+  --band: #1f3556; --band-ink: #f2f5f9; --band-muted: #a9bbd3; --deduct: #e0b25a;
+  --warn: #f08a5d; --focus: #86aee6; --knob: #e5eaf1;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 32px;
+  -webkit-text-size-adjust: 100%;
+}
+.wrap { max-width: 440px; margin: 0 auto; display: grid; gap: 14px; }
+.head h1 { margin: 0; font-size: 22px; line-height: 1.25; font-weight: 600; text-wrap: balance; }
+.sub { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+
+.card, .ledger { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.card { padding: 2px 14px 14px; }
+.row {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding-block: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.lab { font-size: 16px; font-weight: 600; line-height: 1.2; }
+.en {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.time {
+  width: 100%;
+  min-width: 0;
+  height: 54px;
+  padding: 0 12px;
+  font-family: var(--font-num);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--field-line);
+  border-radius: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.time::placeholder { color: var(--faint); }
+.time:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+.time[aria-invalid="true"] { border-color: var(--warn); outline-color: var(--warn); }
+
+button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.now {
+  height: 54px;
+  min-width: 64px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+.now .en { color: inherit; opacity: .72; }
+.now:active, .fix:active { transform: translateY(1px); }
+.now:focus-visible, .fix:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.switch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+  cursor: pointer;
+}
+.sw-text { font-size: 16px; font-weight: 600; line-height: 1.2; }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.track {
+  flex: none;
+  position: relative;
+  width: 50px;
+  height: 30px;
+  border-radius: 15px;
+  background: var(--field-line);
+  transition: background-color .15s ease;
+}
+.track::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--knob);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+  transition: transform .15s ease;
+}
+.switch input:checked + .track { background: var(--accent); }
+.switch input:checked + .track::after { transform: translateX(20px); }
+.switch input:focus-visible + .track { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.band {
+  background: var(--band);
+  color: var(--band-ink);
+  border-radius: 12px;
+  padding: 14px 16px 16px;
+}
+.band-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.band-lab { font-size: 14px; font-weight: 600; }
+.band-lab .en { display: inline; margin-left: 6px; color: var(--band-muted); }
+.chip {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--band-muted);
+  color: var(--band-muted);
+}
+.big { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
+#net {
+  font-family: var(--font-num);
+  font-size: 72px;
+  font-weight: 700;
+  line-height: .95;
+  letter-spacing: .01em;
+  font-variant-numeric: tabular-nums;
+}
+.unit { font-size: 16px; font-weight: 600; color: var(--band-muted); }
+.line { margin: 8px 0 0; font-size: 14px; color: var(--band-muted); font-variant-numeric: tabular-nums; }
+.fix {
+  margin-top: 10px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--band-ink);
+  color: var(--band);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.ledger { padding: 12px 14px 4px; }
+.ledger-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.ledger h2 { margin: 0; font-size: inherit; font-weight: inherit; }
+.ledger ul { list-style: none; margin: 4px 0 0; padding: 0; }
+.ledger li {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 10px;
+  padding-block: 9px;
+  border-top: 1px solid var(--line);
+}
+.t { font-family: var(--font-num); font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.n { font-size: 14px; color: var(--muted); min-width: 0; }
+.v {
+  font-family: var(--font-num);
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--deduct);
+}
+li.off .t { color: var(--muted); }
+li.off .v { color: var(--faint); font-weight: 500; }
+
+.foot { margin: 0; padding-inline: 2px; font-size: 12.5px; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .track, .track::after { transition: none; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="head">
+    <h1>工时榨汁机</h1>
+    <p class="sub">扣掉休息和吃饭，得出实际换型分钟</p>
+  </header>
+
+  <section class="card" aria-label="开工和收工时间">
+    <div class="row">
+      <label class="lab" for="start">开始<span class="en">Start</span></label>
+      <input class="time" id="start" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="5" placeholder="830" enterkeyhint="next" aria-describedby="line">
+      <button class="now" type="button" data-for="start">现在<span class="en">Now</span></button>
+    </div>
+    <div class="row">
+      <label class="lab" for="end">结束<span class="en">End</span></label>
+      <input class="time" id="end" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="5" placeholder="1321" enterkeyhint="done" aria-describedby="line">
+      <button class="now" type="button" data-for="end">现在<span class="en">Now</span></button>
+    </div>
+    <label class="switch" for="next">
+      <span class="sw-text">次日结束<span class="en">Ends next day</span></span>
+      <input id="next" type="checkbox" role="switch">
+      <span class="track" aria-hidden="true"></span>
+    </label>
+  </section>
+
+  <section class="band" aria-live="polite">
+    <div class="band-top">
+      <span class="band-lab">实际换型时间<span class="en">Actual CO time</span></span>
+      <span class="chip" id="chip" hidden>示例</span>
+    </div>
+    <div class="big"><span id="net">—</span><span class="unit">分钟</span></div>
+    <p class="line" id="line"></p>
+    <button class="fix" id="fix" type="button" hidden>改为次日结束</button>
+  </section>
+
+  <section class="ledger" aria-label="休息表和本单扣除">
+    <div class="ledger-head"><h2>休息表</h2><span>本单扣（分）</span></div>
+    <ul id="rows"></ul>
+  </section>
+
+  <p class="foot">上班 08:15 · 下班 20:30 · 只扣和起止时间重叠的部分</p>
+</main>
+
+<script>
+const CO = (() => {
+  const BREAKS = [
+    { s: 600,  e: 610,  name: '休息' },  // 10:00-10:10
+    { s: 690,  e: 730,  name: '午饭' },  // 11:30-12:10
+    { s: 900,  e: 910,  name: '休息' },  // 15:00-15:10
+    { s: 1080, e: 1110, name: '晚饭' }   // 18:00-18:30
+  ];
+  const SHIFT_START = 495;  // 08:15
+  const SHIFT_END = 1230;   // 20:30
+  const DAY = 1440;
+
+  const pad = n => String(n).padStart(2, '0');
+  const fmt = m => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
+  const overlap = (a1, a2, b1, b2) => Math.max(0, Math.min(a2, b2) - Math.max(a1, b1));
+
+  // As-you-type mask: digits only, colon after the hour. 0/1/2 start a two-digit hour, 3-9 a one-digit hour.
+  function maskTime(raw) {
+    const d = String(raw == null ? '' : raw).replace(/\D/g, '');
+    if (!d) return '';
+    const hl = d[0] >= '3' ? 1 : 2;
+    if (d.length <= hl) return d;
+    return d.slice(0, hl) + ':' + d.slice(hl, hl + 2);
+  }
+
+  // Minutes since midnight; null = empty or still being typed; NaN = unreadable.
+  function parseTime(raw, final) {
+    const s = String(raw == null ? '' : raw).trim();
+    if (!s) return null;
+    const sep = /[:.：。,，\s]+/;
+    let h, m;
+    if (sep.test(s)) {
+      const parts = s.split(sep);
+      if (parts.length !== 2) return NaN;
+      const a = parts[0], b = parts[1];
+      if (b === '') return final ? NaN : null;
+      if (!/^\d{1,2}$/.test(a) || !/^\d{1,2}$/.test(b)) return NaN;
+      if (b.length === 1) return final ? NaN : null;
+      h = +a; m = +b;
+    } else {
+      if (!/^\d{1,4}$/.test(s)) return NaN;
+      if (s.length <= 2) {
+        if (!final) return null;
+        h = +s; m = 0;
+      } else if (s.length === 3) {
+        h = +s[0]; m = +s.slice(1);
+      } else {
+        h = +s.slice(0, 2); m = +s.slice(2);
+      }
+    }
+    if (h > 23 || m > 59) return NaN;
+    return h * 60 + m;
+  }
+
+  // S, E in minutes since midnight; days = midnights crossed (0 = same day).
+  // Breaks are deducted only where they overlap the job; overnight 20:30 -> 08:15 is skipped.
+  function compute(S, E, days) {
+    const end = E + days * DAY;
+    if (end < S) return null;
+    const gross = end - S;
+    const breaks = BREAKS.map(b => {
+      let t = 0;
+      for (let d = 0; d <= days; d++) t += overlap(S, end, b.s + d * DAY, b.e + d * DAY);
+      return t;
+    });
+    let night = 0;
+    for (let d = 0; d < days; d++) night += overlap(S, end, SHIFT_END + d * DAY, SHIFT_START + (d + 1) * DAY);
+    const net = gross - night - breaks.reduce((a, b) => a + b, 0);
+    return { gross, breaks, night, net };
+  }
+
+  function hm(m) {
+    if (m < 60) return m + ' 分';
+    const h = Math.floor(m / 60), r = m % 60;
+    return r ? h + ' 小时 ' + r + ' 分' : h + ' 小时';
+  }
+
+  return { BREAKS, SHIFT_START, SHIFT_END, fmt, parseTime, compute, hm, maskTime };
+})();
+</script>
+
+<script>
+(() => {
+  const KEY = 'co-calc-v1';
+  const $ = id => document.getElementById(id);
+  const startEl = $('start'), endEl = $('end'), nextEl = $('next');
+  const netEl = $('net'), lineEl = $('line'), fixEl = $('fix'), chipEl = $('chip'), rowsEl = $('rows');
+  let example = false;
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return null;
+      const s = JSON.parse(raw);
+      return s && typeof s === 'object' ? s : null;
+    } catch (e) { return null; }
+  }
+  function save() {
+    if (example) return;
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ start: startEl.value, end: endEl.value, next: nextEl.checked }));
+    } catch (e) {}
+  }
+  function userEdit() {
+    if (!example) return;
+    example = false;
+    chipEl.hidden = true;
+  }
+
+  function renderRows(res, days) {
+    const items = CO.BREAKS.map((b, i) => ({
+      t: CO.fmt(b.s) + '–' + CO.fmt(b.e),
+      n: b.name,
+      v: res ? res.breaks[i] : 0
+    }));
+    if (days) items.push({
+      t: CO.fmt(CO.SHIFT_END) + '–' + CO.fmt(CO.SHIFT_START),
+      n: '下班 → 次日上班',
+      v: res ? res.night : 0
+    });
+    rowsEl.innerHTML = items.map(it =>
+      '<li class="' + (it.v > 0 ? 'on' : 'off') + '">' +
+        '<span class="t">' + it.t + '</span>' +
+        '<span class="n">' + it.n + '</span>' +
+        '<span class="v">' + (it.v > 0 ? '−' + it.v : '—') + '</span>' +
+      '</li>'
+    ).join('');
+  }
+
+  function render() {
+    const S = CO.parseTime(startEl.value, document.activeElement !== startEl);
+    const E = CO.parseTime(endEl.value, document.activeElement !== endEl);
+    const days = nextEl.checked ? 1 : 0;
+    startEl.setAttribute('aria-invalid', Number.isNaN(S) ? 'true' : 'false');
+    endEl.setAttribute('aria-invalid', Number.isNaN(E) ? 'true' : 'false');
+    fixEl.hidden = true;
+    let res = null;
+
+    if (Number.isNaN(S) || Number.isNaN(E)) {
+      netEl.textContent = '—';
+      lineEl.textContent = (Number.isNaN(S) ? '开始' : '结束') + '时间看不懂，直接打数字，比如 830 或 1321。';
+    } else if (S === null || E === null) {
+      netEl.textContent = '—';
+      lineEl.textContent = S === null && E === null ? '填开始和结束时间。'
+        : S === null ? '还差开始时间。'
+        : '还差结束时间，收工时按「现在」。';
+    } else {
+      res = CO.compute(S, E, days);
+      if (!res) {
+        netEl.textContent = '—';
+        lineEl.textContent = '结束早于开始。第二天才收尾的话：';
+        fixEl.hidden = false;
+      } else {
+        netEl.textContent = String(res.net);
+        lineEl.textContent = CO.hm(res.net) + ' · 毛时长 ' + res.gross + ' 分，扣 ' + (res.gross - res.net) + ' 分';
+      }
+    }
+    renderRows(res, days);
+  }
+
+  [startEl, endEl].forEach(el => {
+    el.addEventListener('focus', () => {
+      setTimeout(() => { try { el.setSelectionRange(0, el.value.length); } catch (e) {} }, 0);
+    });
+    el.addEventListener('input', () => {
+      const masked = CO.maskTime(el.value);
+      if (masked !== el.value) {
+        el.value = masked;
+        try { el.setSelectionRange(masked.length, masked.length); } catch (e) {}
+      }
+      userEdit();
+      render();
+      save();
+    });
+    el.addEventListener('blur', () => {
+      const v = CO.parseTime(el.value, true);
+      if (typeof v === 'number' && !Number.isNaN(v)) el.value = CO.fmt(v);
+      render();
+      save();
+    });
+    el.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      if (el === startEl) endEl.focus(); else el.blur();
+    });
+  });
+
+  document.querySelectorAll('.now').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const d = new Date();
+      const el = btn.dataset.for === 'start' ? startEl : endEl;
+      userEdit();
+      el.value = CO.fmt(d.getHours() * 60 + d.getMinutes());
+      if (el === startEl) {
+        // Starting a new job: clear the old finish.
+        endEl.value = '';
+        nextEl.checked = false;
+      }
+      render();
+      save();
+    });
+  });
+
+  nextEl.addEventListener('change', () => { userEdit(); render(); save(); });
+  fixEl.addEventListener('click', () => { nextEl.checked = true; userEdit(); render(); save(); });
+
+  const saved = load();
+  if (saved) {
+    startEl.value = typeof saved.start === 'string' ? saved.start : '';
+    endEl.value = typeof saved.end === 'string' ? saved.end : '';
+    nextEl.checked = !!saved.next;
+  } else {
+    startEl.value = '08:30';
+    endEl.value = '13:21';
+    example = true;
+    chipEl.hidden = false;
+  }
+  render();
+})();
+</script>
+</body>
+</html>

@@ -4,43 +4,31 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>工时榨汁机</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap">
 <style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0}[hidden]{display:none!important}</style>
 <style>
 /* Layout: one narrow job-ticket column. Inputs first; the checklist's navy header bar carries the answer; the break table below doubles as the ledger. */
 :root {
-  --bg: #eef1f5;
-  --surface: #ffffff;
-  --ink: #15233a;
-  --muted: #5f6c7d;
-  --faint: #a3adba;
-  --line: #dde3ea;
-  --field-line: #c2cbd7;
-  --accent: #1d3c69;
-  --on-accent: #ffffff;
-  --band: #1d3c69;
-  --band-ink: #ffffff;
-  --band-muted: #b9c8dc;
-  --deduct: #8a5c10;
-  --warn: #b0461b;
-  --focus: #3b6fb6;
-  --knob: #ffffff;
-  --font-num: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-ui: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0e141c; --surface: #172030; --ink: #e5eaf1; --muted: #9aa7b8; --faint: #5c6a7d;
-    --line: #273347; --field-line: #3a4a60; --accent: #86aee6; --on-accent: #0e141c;
-    --band: #1f3556; --band-ink: #f2f5f9; --band-muted: #a9bbd3; --deduct: #e0b25a;
-    --warn: #f08a5d; --focus: #86aee6; --knob: #e5eaf1;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0e141c; --surface: #172030; --ink: #e5eaf1; --muted: #9aa7b8; --faint: #5c6a7d;
-  --line: #273347; --field-line: #3a4a60; --accent: #86aee6; --on-accent: #0e141c;
-  --band: #1f3556; --band-ink: #f2f5f9; --band-muted: #a9bbd3; --deduct: #e0b25a;
-  --warn: #f08a5d; --focus: #86aee6; --knob: #e5eaf1;
+  --bg: #0e141c;
+  --surface: #172030;
+  --ink: #e5eaf1;
+  --muted: #9aa7b8;
+  --faint: #5c6a7d;
+  --line: #273347;
+  --field-line: #3a4a60;
+  --accent: #86aee6;
+  --on-accent: #0e141c;
+  --band: #1f3556;
+  --band-ink: #f2f5f9;
+  --band-muted: #a9bbd3;
+  --deduct: #e0b25a;
+  --warn: #f08a5d;
+  --focus: #86aee6;
+  --knob: #e5eaf1;
+  --font-num: "Barlow Condensed", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-ui: "Barlow", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
   color-scheme: dark;
 }
 
@@ -50,6 +38,7 @@ body {
   color: var(--ink);
   font-family: var(--font-ui);
   font-size: 15px;
+  font-weight: 500;
   line-height: 1.5;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
@@ -57,8 +46,8 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 .wrap { max-width: 440px; margin: 0 auto; display: grid; gap: 14px; }
-.head h1 { margin: 0; font-size: 22px; line-height: 1.25; font-weight: 600; text-wrap: balance; }
-.sub { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.head h1 { margin: 0; font-size: 22px; line-height: 1.25; font-weight: 700; text-wrap: balance; }
+.sub { margin: 6px 0 0; font-size: 15px; line-height: 1.55; color: var(--muted); }
 
 .card, .ledger { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
 .card { padding: 2px 14px 14px; }
@@ -70,7 +59,7 @@ body {
   padding-block: 12px;
   border-bottom: 1px solid var(--line);
 }
-.lab { font-size: 16px; font-weight: 600; line-height: 1.2; }
+.lab { font-size: 16px; font-weight: 700; line-height: 1.2; }
 .en {
   display: block;
   font-size: 10.5px;
@@ -85,8 +74,8 @@ body {
   height: 54px;
   padding: 0 12px;
   font-family: var(--font-num);
-  font-size: 32px;
-  font-weight: 600;
+  font-size: 34px;
+  font-weight: 700;
   letter-spacing: .02em;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
@@ -110,7 +99,7 @@ button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparen
   background: var(--accent);
   color: var(--on-accent);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.15;
 }
 .now .en { color: inherit; opacity: .72; }
@@ -126,7 +115,7 @@ button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparen
   padding-top: 14px;
   cursor: pointer;
 }
-.sw-text { font-size: 16px; font-weight: 600; line-height: 1.2; }
+.sw-text { font-size: 16px; font-weight: 700; line-height: 1.2; }
 .switch input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
 .track {
   flex: none;
@@ -160,11 +149,11 @@ button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparen
   padding: 14px 16px 16px;
 }
 .band-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.band-lab { font-size: 14px; font-weight: 600; }
+.band-lab { font-size: 14px; font-weight: 700; }
 .band-lab .en { display: inline; margin-left: 6px; color: var(--band-muted); }
 .chip {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1;
   padding: 4px 9px;
   border-radius: 999px;
@@ -174,14 +163,19 @@ button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparen
 .big { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
 #net {
   font-family: var(--font-num);
-  font-size: 72px;
-  font-weight: 700;
+  font-size: 80px;
+  font-weight: 800;
   line-height: .95;
   letter-spacing: .01em;
   font-variant-numeric: tabular-nums;
 }
-.unit { font-size: 16px; font-weight: 600; color: var(--band-muted); }
-.line { margin: 8px 0 0; font-size: 14px; color: var(--band-muted); font-variant-numeric: tabular-nums; }
+.unit { font-size: 16px; font-weight: 700; color: var(--band-muted); }
+.line { margin: 8px 0 0; font-size: 15px; color: var(--band-muted); font-variant-numeric: tabular-nums; }
+.line-en { margin: 2px 0 0; font-size: 13px; color: var(--band-muted); font-variant-numeric: tabular-nums; }
+.line-en:empty { display: none; }
+.unit .en { color: var(--band-muted); }
+.ledger-head .r { text-align: right; }
+.ledger-head .en, .n .en { margin-top: 1px; }
 .fix {
   margin-top: 10px;
   padding: 10px 16px;
@@ -190,7 +184,7 @@ button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparen
   background: var(--band-ink);
   color: var(--band);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .ledger { padding: 12px 14px 4px; }
@@ -200,7 +194,7 @@ button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparen
   align-items: baseline;
   gap: 8px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--muted);
 }
 .ledger h2 { margin: 0; font-size: inherit; font-weight: inherit; }
@@ -213,7 +207,7 @@ button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparen
   padding-block: 9px;
   border-top: 1px solid var(--line);
 }
-.t { font-family: var(--font-num); font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.t { font-family: var(--font-num); font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .n { font-size: 14px; color: var(--muted); min-width: 0; }
 .v {
   font-family: var(--font-num);
@@ -237,7 +231,7 @@ li.off .v { color: var(--faint); font-weight: 500; }
 <main class="wrap">
   <header class="head">
     <h1>工时榨汁机</h1>
-    <p class="sub">扣掉休息和吃饭，得出实际换型分钟</p>
+    <p class="sub">智商欠费算盘精，鸡毛蒜皮当圣经。<br>抹去凡间烟火气，灵长动物化肉身。</p>
   </header>
 
   <section class="card" aria-label="开工和收工时间">
@@ -261,15 +255,16 @@ li.off .v { color: var(--faint); font-weight: 500; }
   <section class="band" aria-live="polite">
     <div class="band-top">
       <span class="band-lab">实际换型时间<span class="en">Actual CO time</span></span>
-      <span class="chip" id="chip" hidden>示例</span>
+      <span class="chip" id="chip" hidden>示例 EXAMPLE</span>
     </div>
-    <div class="big"><span id="net">—</span><span class="unit">分钟</span></div>
+    <div class="big"><span id="net">—</span><span class="unit">分钟<span class="en">Min</span></span></div>
     <p class="line" id="line"></p>
+    <p class="line-en" id="line-en"></p>
     <button class="fix" id="fix" type="button" hidden>改为次日结束</button>
   </section>
 
   <section class="ledger" aria-label="休息表和本单扣除">
-    <div class="ledger-head"><h2>休息表</h2><span>本单扣（分）</span></div>
+    <div class="ledger-head"><h2>休息表<span class="en">Breaks</span></h2><span class="r">本单扣（分）<span class="en">This job (min)</span></span></div>
     <ul id="rows"></ul>
   </section>
 
@@ -279,10 +274,10 @@ li.off .v { color: var(--faint); font-weight: 500; }
 <script>
 const CO = (() => {
   const BREAKS = [
-    { s: 600,  e: 610,  name: '休息' },  // 10:00-10:10
-    { s: 690,  e: 730,  name: '午饭' },  // 11:30-12:10
-    { s: 900,  e: 910,  name: '休息' },  // 15:00-15:10
-    { s: 1080, e: 1110, name: '晚饭' }   // 18:00-18:30
+    { s: 600,  e: 610,  name: '休息', en: 'Break' },   // 10:00-10:10
+    { s: 690,  e: 730,  name: '午饭', en: 'Lunch' },   // 11:30-12:10
+    { s: 900,  e: 910,  name: '休息', en: 'Break' },   // 15:00-15:10
+    { s: 1080, e: 1110, name: '晚饭', en: 'Dinner' }   // 18:00-18:30
   ];
   const SHIFT_START = 495;  // 08:15
   const SHIFT_END = 1230;   // 20:30
@@ -353,7 +348,13 @@ const CO = (() => {
     return r ? h + ' 小时 ' + r + ' 分' : h + ' 小时';
   }
 
-  return { BREAKS, SHIFT_START, SHIFT_END, fmt, parseTime, compute, hm, maskTime };
+  function hmEn(m) {
+    if (m < 60) return m + ' min';
+    const h = Math.floor(m / 60), r = m % 60;
+    return r ? h + ' hr ' + r + ' min' : h + ' hr';
+  }
+
+  return { BREAKS, SHIFT_START, SHIFT_END, fmt, parseTime, compute, hm, hmEn, maskTime };
 })();
 </script>
 
@@ -362,7 +363,7 @@ const CO = (() => {
   const KEY = 'co-calc-v1';
   const $ = id => document.getElementById(id);
   const startEl = $('start'), endEl = $('end'), nextEl = $('next');
-  const netEl = $('net'), lineEl = $('line'), fixEl = $('fix'), chipEl = $('chip'), rowsEl = $('rows');
+  const netEl = $('net'), lineEl = $('line'), lineEnEl = $('line-en'), fixEl = $('fix'), chipEl = $('chip'), rowsEl = $('rows');
   let example = false;
 
   function load() {
@@ -389,17 +390,19 @@ const CO = (() => {
     const items = CO.BREAKS.map((b, i) => ({
       t: CO.fmt(b.s) + '–' + CO.fmt(b.e),
       n: b.name,
+      en: b.en,
       v: res ? res.breaks[i] : 0
     }));
     if (days) items.push({
       t: CO.fmt(CO.SHIFT_END) + '–' + CO.fmt(CO.SHIFT_START),
       n: '下班 → 次日上班',
+      en: 'Off → next shift',
       v: res ? res.night : 0
     });
     rowsEl.innerHTML = items.map(it =>
       '<li class="' + (it.v > 0 ? 'on' : 'off') + '">' +
         '<span class="t">' + it.t + '</span>' +
-        '<span class="n">' + it.n + '</span>' +
+        '<span class="n">' + it.n + '<span class="en">' + it.en + '</span></span>' +
         '<span class="v">' + (it.v > 0 ? '−' + it.v : '—') + '</span>' +
       '</li>'
     ).join('');
@@ -412,6 +415,7 @@ const CO = (() => {
     startEl.setAttribute('aria-invalid', Number.isNaN(S) ? 'true' : 'false');
     endEl.setAttribute('aria-invalid', Number.isNaN(E) ? 'true' : 'false');
     fixEl.hidden = true;
+    lineEnEl.textContent = '';
     let res = null;
 
     if (Number.isNaN(S) || Number.isNaN(E)) {
@@ -431,6 +435,7 @@ const CO = (() => {
       } else {
         netEl.textContent = String(res.net);
         lineEl.textContent = CO.hm(res.net) + ' · 毛时长 ' + res.gross + ' 分，扣 ' + (res.gross - res.net) + ' 分';
+        lineEnEl.textContent = CO.hmEn(res.net) + ' · ' + res.gross + ' min from start to end, minus ' + (res.gross - res.net);
       }
     }
     renderRows(res, days);

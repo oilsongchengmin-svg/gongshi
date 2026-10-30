@@ -2,4 +2,4 @@
 
 换型实际时间计算器：填开始和结束时间，自动扣掉和这段时间重叠的休息（10:00–10:10、15:00–15:10）、午饭（11:30–12:10）、晚饭（18:00–18:30），跨天时跳过下班到次日上班（20:30 → 08:15）。
 
-打开：https://oilsongchengmin-svg.github.io/gongshi/
+打开：https://qianshoulab.github.io/gongshi/

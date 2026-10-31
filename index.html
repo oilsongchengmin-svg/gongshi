@@ -222,6 +222,72 @@ li.off .v { color: var(--faint); font-weight: 500; }
 
 .foot { margin: 0; padding-inline: 2px; font-size: 12.5px; color: var(--muted); }
 
+/* 改休息时间：就在休息表里原地改，不另开页面 */
+.ghost {
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--field-line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+.ghost .en { display: inline; margin-left: 6px; color: var(--muted); }
+.ghost:active, .done:active, .del:active { transform: translateY(1px); }
+.ghost:focus-visible, .done:focus-visible, .del:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.edit-bar { border-top: 1px solid var(--line); padding: 10px 0; }
+.edit-bar .ghost { width: 100%; }
+.ledger.editing .r { visibility: hidden; }
+.ledger li.ed {
+  grid-template-columns: 68px auto 68px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 6px;
+  padding-block: 8px;
+}
+.time.sm { height: 40px; padding: 0 2px; font-size: 21px; text-align: center; border-radius: 6px; }
+.name {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 0 8px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--field-line);
+  border-radius: 6px;
+}
+.name:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+.dash { color: var(--muted); }
+.del {
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 24px;
+  line-height: 1;
+}
+.editor { border-top: 1px solid var(--line); padding: 12px 0; display: grid; gap: 12px; }
+.shift { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.shift label { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px; font-size: 15px; font-weight: 700; }
+.ed-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.ed-btns .ghost { padding: 0 6px; }
+.done {
+  height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 15px;
+  font-weight: 700;
+}
+.ed-note { margin: 0; font-size: 12.5px; color: var(--muted); }
+.ed-note.bad { color: var(--warn); }
+
 @media (prefers-reduced-motion: reduce) {
   .track, .track::after { transition: none; }
 }
@@ -263,25 +329,64 @@ li.off .v { color: var(--faint); font-weight: 500; }
     <button class="fix" id="fix" type="button" hidden>改为次日结束</button>
   </section>
 
-  <section class="ledger" aria-label="休息表和本单扣除">
+  <section class="ledger" id="ledger" aria-label="休息表和本单扣除">
     <div class="ledger-head"><h2>休息表<span class="en">Breaks</span></h2><span class="r">本单扣（分）<span class="en">This job (min)</span></span></div>
     <ul id="rows"></ul>
+    <div class="edit-bar" id="edit-bar">
+      <button class="ghost" id="edit" type="button">改休息时间<span class="en">Edit breaks</span></button>
+    </div>
+    <div class="editor" id="editor" hidden>
+      <div class="shift">
+        <label for="on">上班<input class="time sm" id="on" type="text" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="815"></label>
+        <label for="off">下班<input class="time sm" id="off" type="text" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="2030"></label>
+      </div>
+      <div class="ed-btns">
+        <button class="ghost" id="add" type="button">＋ 加一段</button>
+        <button class="ghost" id="reset" type="button">恢复默认</button>
+        <button class="done" id="done" type="button">完成</button>
+      </div>
+      <p class="ed-note" id="ed-note"></p>
+    </div>
   </section>
 
-  <p class="foot">上班 08:15 · 下班 20:30 · 只扣和起止时间重叠的部分</p>
+  <p class="foot" id="foot">上班 08:15 · 下班 20:30 · 只扣和起止时间重叠的部分</p>
 </main>
 
 <script>
 const CO = (() => {
-  const BREAKS = [
-    { s: 600,  e: 610,  name: '休息', en: 'Break' },   // 10:00-10:10
-    { s: 690,  e: 730,  name: '午饭', en: 'Lunch' },   // 11:30-12:10
-    { s: 900,  e: 910,  name: '休息', en: 'Break' },   // 15:00-15:10
-    { s: 1080, e: 1110, name: '晚饭', en: 'Dinner' }   // 18:00-18:30
-  ];
-  const SHIFT_START = 495;  // 08:15
-  const SHIFT_END = 1230;   // 20:30
+  // 默认就是我们车间那套；每部手机可以在「改休息时间」里改成自己的，存在那部手机上。
+  const DEFAULTS = {
+    on: 495,    // 08:15 上班
+    off: 1230,  // 20:30 下班
+    breaks: [
+      { s: 600,  e: 610,  name: '休息' },   // 10:00-10:10
+      { s: 690,  e: 730,  name: '午饭' },   // 11:30-12:10
+      { s: 900,  e: 910,  name: '休息' },   // 15:00-15:10
+      { s: 1080, e: 1110, name: '晚饭' }    // 18:00-18:30
+    ]
+  };
   const DAY = 1440;
+  const MAX_BREAKS = 12;
+  const EN = { '休息': 'Break', '茶歇': 'Break', '午饭': 'Lunch', '午餐': 'Lunch', '晚饭': 'Dinner', '晚餐': 'Dinner',
+               '早饭': 'Breakfast', '早餐': 'Breakfast', '夜宵': 'Supper', '宵夜': 'Supper', '开会': 'Meeting' };
+  const nameEn = n => EN[n] || 'Break';
+
+  const copy = r => ({ on: r.on, off: r.off, breaks: r.breaks.map(b => ({ s: b.s, e: b.e, name: b.name })) });
+  const isMin = v => Number.isInteger(v) && v >= 0 && v < DAY;
+  // 只认对的规则：时间都在一天之内，结束比开始晚，下班比上班晚。
+  function valid(r) {
+    return !!r && isMin(r.on) && isMin(r.off) && r.off > r.on && Array.isArray(r.breaks) && r.breaks.length <= MAX_BREAKS &&
+      r.breaks.every(b => b && isMin(b.s) && isMin(b.e) && b.e > b.s && typeof b.name === 'string' && b.name.length <= 12);
+  }
+  const sortBreaks = r => { r.breaks.sort((a, b) => a.s - b.s || a.e - b.e); return r; };
+  let rules = copy(DEFAULTS);
+  function setRules(r) {
+    if (!valid(r)) return false;
+    rules = sortBreaks(copy(r));
+    return true;
+  }
+  const getRules = () => copy(rules);
+  const isDefault = () => JSON.stringify(rules) === JSON.stringify(sortBreaks(copy(DEFAULTS)));
 
   const pad = n => String(n).padStart(2, '0');
   const fmt = m => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
@@ -326,18 +431,35 @@ const CO = (() => {
   }
 
   // S, E in minutes since midnight; days = midnights crossed (0 = same day).
-  // Breaks are deducted only where they overlap the job; overnight 20:30 -> 08:15 is skipped.
+  // Breaks are deducted only where they overlap the job; overnight off -> next day's on is skipped.
+  // Overlapping breaks are merged first, so a minute is never deducted twice.
   function compute(S, E, days) {
     const end = E + days * DAY;
     if (end < S) return null;
     const gross = end - S;
-    const breaks = BREAKS.map(b => {
+    let taken = [];                                   // 已经扣过的区间（同一分钟只扣一次）
+    const take = (a, b) => {
       let t = 0;
-      for (let d = 0; d <= days; d++) t += overlap(S, end, b.s + d * DAY, b.e + d * DAY);
+      a = Math.max(a, S); b = Math.min(b, end);
+      if (b <= a) return 0;
+      const pieces = [[a, b]];
+      for (const [x, y] of taken) {
+        for (let i = pieces.length - 1; i >= 0; i--) {
+          const [p, q] = pieces[i];
+          if (y <= p || x >= q) continue;
+          pieces.splice(i, 1, ...[[p, Math.min(q, x)], [Math.max(p, y), q]].filter(([u, v]) => v > u));
+        }
+      }
+      for (const [p, q] of pieces) { t += q - p; taken.push([p, q]); }
+      return t;
+    };
+    const breaks = rules.breaks.map(b => {
+      let t = 0;
+      for (let d = 0; d <= days; d++) t += take(b.s + d * DAY, b.e + d * DAY);
       return t;
     });
     let night = 0;
-    for (let d = 0; d < days; d++) night += overlap(S, end, SHIFT_END + d * DAY, SHIFT_START + (d + 1) * DAY);
+    for (let d = 0; d < days; d++) night += take(rules.off + d * DAY, rules.on + (d + 1) * DAY);
     const net = gross - night - breaks.reduce((a, b) => a + b, 0);
     return { gross, breaks, night, net };
   }
@@ -354,21 +476,26 @@ const CO = (() => {
     return r ? h + ' hr ' + r + ' min' : h + ' hr';
   }
 
-  return { BREAKS, SHIFT_START, SHIFT_END, fmt, parseTime, compute, hm, hmEn, maskTime };
+  return { DEFAULTS: copy(DEFAULTS), MAX_BREAKS, valid, setRules, getRules, isDefault, nameEn,
+           fmt, parseTime, compute, hm, hmEn, maskTime };
 })();
 </script>
 
 <script>
 (() => {
   const KEY = 'co-calc-v1';
+  const RULES_KEY = 'co-calc-rules-v1';
   const $ = id => document.getElementById(id);
   const startEl = $('start'), endEl = $('end'), nextEl = $('next');
   const netEl = $('net'), lineEl = $('line'), lineEnEl = $('line-en'), fixEl = $('fix'), chipEl = $('chip'), rowsEl = $('rows');
+  const ledgerEl = $('ledger'), editBarEl = $('edit-bar'), editorEl = $('editor'), onEl = $('on'), offEl = $('off');
+  const noteEl = $('ed-note'), footEl = $('foot');
   let example = false;
+  let draft = null;           // 正在改的休息表：{on, off, rows: [{s, e, name}]}，都是框里的字
 
-  function load() {
+  function load(key) {
     try {
-      const raw = localStorage.getItem(KEY);
+      const raw = localStorage.getItem(key);
       if (!raw) return null;
       const s = JSON.parse(raw);
       return s && typeof s === 'object' ? s : null;
@@ -380,32 +507,47 @@ const CO = (() => {
       localStorage.setItem(KEY, JSON.stringify({ start: startEl.value, end: endEl.value, next: nextEl.checked }));
     } catch (e) {}
   }
+  function saveRules() {
+    try {
+      if (CO.isDefault()) localStorage.removeItem(RULES_KEY);
+      else localStorage.setItem(RULES_KEY, JSON.stringify(CO.getRules()));
+    } catch (e) {}
+  }
   function userEdit() {
     if (!example) return;
     example = false;
     chipEl.hidden = true;
   }
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   function renderRows(res, days) {
-    const items = CO.BREAKS.map((b, i) => ({
+    if (draft) return;                                   // 正在改：框子别被刷掉
+    const r = CO.getRules();
+    const items = r.breaks.map((b, i) => ({
       t: CO.fmt(b.s) + '–' + CO.fmt(b.e),
-      n: b.name,
-      en: b.en,
+      n: b.name || '休息',
+      en: CO.nameEn(b.name || '休息'),
       v: res ? res.breaks[i] : 0
     }));
     if (days) items.push({
-      t: CO.fmt(CO.SHIFT_END) + '–' + CO.fmt(CO.SHIFT_START),
+      t: CO.fmt(r.off) + '–' + CO.fmt(r.on),
       n: '下班 → 次日上班',
       en: 'Off → next shift',
       v: res ? res.night : 0
     });
-    rowsEl.innerHTML = items.map(it =>
+    rowsEl.innerHTML = items.length ? items.map(it =>
       '<li class="' + (it.v > 0 ? 'on' : 'off') + '">' +
         '<span class="t">' + it.t + '</span>' +
-        '<span class="n">' + it.n + '<span class="en">' + it.en + '</span></span>' +
+        '<span class="n">' + esc(it.n) + '<span class="en">' + it.en + '</span></span>' +
         '<span class="v">' + (it.v > 0 ? '−' + it.v : '—') + '</span>' +
       '</li>'
-    ).join('');
+    ).join('') : '<li class="off"><span class="t">—</span><span class="n">没有休息<span class="en">No breaks</span></span><span class="v">—</span></li>';
+  }
+
+  function renderFoot() {
+    const r = CO.getRules();
+    footEl.textContent = '上班 ' + CO.fmt(r.on) + ' · 下班 ' + CO.fmt(r.off) + ' · 只扣和起止时间重叠的部分' +
+      (CO.isDefault() ? '' : ' · 休息表是这台手机自己改的');
   }
 
   function render() {
@@ -439,12 +581,173 @@ const CO = (() => {
       }
     }
     renderRows(res, days);
+    renderFoot();
   }
 
-  [startEl, endEl].forEach(el => {
-    el.addEventListener('focus', () => {
-      setTimeout(() => { try { el.setSelectionRange(0, el.value.length); } catch (e) {} }, 0);
+  // ---------------------------------------------------------------- 改休息时间（就在休息表里原地改）
+  const toDraft = r => ({
+    on: CO.fmt(r.on), off: CO.fmt(r.off),
+    rows: r.breaks.map(b => ({ s: CO.fmt(b.s), e: CO.fmt(b.e), name: b.name }))
+  });
+
+  // 框里的字变成规则。空着的一行不算；有毛病的框记下来（标红、说一声）。
+  function readDraft() {
+    const bad = [];
+    const rule = { on: CO.parseTime(draft.on, true), off: CO.parseTime(draft.off, true), breaks: [] };
+    const okTime = v => typeof v === 'number' && !Number.isNaN(v);
+    if (!okTime(rule.on)) bad.push({ el: onEl, why: '上班时间看不懂' });
+    if (!okTime(rule.off)) bad.push({ el: offEl, why: '下班时间看不懂' });
+    if (okTime(rule.on) && okTime(rule.off) && rule.off <= rule.on) bad.push({ el: offEl, why: '下班要比上班晚' });
+    draft.rows.forEach((row, i) => {
+      if (!row.s.trim() && !row.e.trim()) return;        // 空行：不算
+      const s = CO.parseTime(row.s, true), e = CO.parseTime(row.e, true);
+      const sEl = rowsEl.querySelector('[data-i="' + i + '"][data-k="s"]');
+      const eEl = rowsEl.querySelector('[data-i="' + i + '"][data-k="e"]');
+      if (!okTime(s)) { bad.push({ el: sEl, why: '有一段的开始时间看不懂' }); return; }
+      if (!okTime(e)) { bad.push({ el: eEl, why: '有一段的结束时间看不懂' }); return; }
+      if (e <= s) { bad.push({ el: eEl, why: '有一段结束比开始早' }); return; }
+      rule.breaks.push({ s, e, name: row.name.trim() || '休息' });
     });
+    if (rule.breaks.length > CO.MAX_BREAKS) bad.push({ el: null, why: '最多 ' + CO.MAX_BREAKS + ' 段' });
+    return { rule, bad };
+  }
+
+  // 每改一个字：对的就马上用上、存进手机（不用点保存）；不对的标红，结果先按上一次对的算。
+  function applyDraft(final) {
+    const { rule, bad } = readDraft();
+    editorEl.querySelectorAll('[aria-invalid]').forEach(el => el.setAttribute('aria-invalid', 'false'));
+    rowsEl.querySelectorAll('[aria-invalid]').forEach(el => el.setAttribute('aria-invalid', 'false'));
+    const shown = bad.filter(b => final || !b.el || b.el !== document.activeElement);
+    shown.forEach(b => b.el && b.el.setAttribute('aria-invalid', 'true'));
+    if (!bad.length && CO.setRules(rule)) {
+      saveRules();
+      noteEl.className = 'ed-note';
+      noteEl.textContent = '改了马上算数，只存在这台手机上。';
+    } else if (shown.length) {
+      noteEl.className = 'ed-note bad';
+      noteEl.textContent = shown[0].why + '。直接打数字，比如 1000 就是 10:00。';
+    }
+    render();
+    return bad;
+  }
+
+  function drawEditor(focusRow) {
+    rowsEl.innerHTML = draft.rows.map((row, i) =>
+      '<li class="ed">' +
+        '<input class="time sm" data-i="' + i + '" data-k="s" type="text" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="开始" aria-label="第 ' + (i + 1) + ' 段开始" value="' + esc(row.s) + '">' +
+        '<span class="dash">–</span>' +
+        '<input class="time sm" data-i="' + i + '" data-k="e" type="text" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="结束" aria-label="第 ' + (i + 1) + ' 段结束" value="' + esc(row.e) + '">' +
+        '<input class="name" data-i="' + i + '" data-k="name" type="text" maxlength="6" placeholder="休息" aria-label="第 ' + (i + 1) + ' 段叫什么" value="' + esc(row.name) + '">' +
+        '<button class="del" data-i="' + i + '" type="button" aria-label="删掉第 ' + (i + 1) + ' 段">×</button>' +
+      '</li>'
+    ).join('');
+    onEl.value = draft.on;
+    offEl.value = draft.off;
+    $('add').disabled = draft.rows.length >= CO.MAX_BREAKS;
+    if (focusRow != null) {
+      const el = rowsEl.querySelector('[data-i="' + focusRow + '"][data-k="s"]');
+      if (el) el.focus();
+    }
+  }
+
+  function openEditor() {
+    draft = toDraft(CO.getRules());
+    ledgerEl.classList.add('editing');
+    editBarEl.hidden = true;
+    editorEl.hidden = false;
+    noteEl.className = 'ed-note';
+    noteEl.textContent = '改了马上算数，只存在这台手机上。';
+    drawEditor();
+  }
+
+  function closeEditor() {
+    draft.rows = draft.rows.filter(r => r.s.trim() || r.e.trim());   // 空行扔掉
+    const bad = applyDraft(true);
+    if (bad.length) {
+      drawEditor();
+      applyDraft(true);
+      const first = bad.find(b => b.el && b.el.isConnected) || bad[0];
+      const again = first && first.el && (first.el.dataset.i != null
+        ? rowsEl.querySelector('[data-i="' + first.el.dataset.i + '"][data-k="' + first.el.dataset.k + '"]') : first.el);
+      if (again) again.focus();
+      return;
+    }
+    draft = null;
+    ledgerEl.classList.remove('editing');
+    editorEl.hidden = true;
+    editBarEl.hidden = false;
+    render();
+  }
+
+  // 点进时间框就整格选中，直接打新数字（框是满的，不选中就打不进去）；iOS 要等一下再选一次
+  function selectAll(el) {
+    try { el.select(); } catch (x) {}
+    const before = el.value;                             // 已经开始打字了就别再选，不然把刚打的字吃掉
+    setTimeout(() => {
+      if (document.activeElement === el && el.value === before) { try { el.setSelectionRange(0, el.value.length); } catch (x) {} }
+    }, 0);
+  }
+
+  function timeInput(el, set) {
+    const masked = CO.maskTime(el.value);
+    if (masked !== el.value) {
+      el.value = masked;
+      try { el.setSelectionRange(masked.length, masked.length); } catch (e) {}
+    }
+    set(el.value);
+    applyDraft(false);
+  }
+  function timeBlur(el, set) {
+    const v = CO.parseTime(el.value, true);
+    if (typeof v === 'number' && !Number.isNaN(v)) el.value = CO.fmt(v);
+    set(el.value);
+    applyDraft(true);
+  }
+
+  rowsEl.addEventListener('input', e => {
+    const el = e.target;
+    if (!draft || el.dataset.i == null) return;
+    const row = draft.rows[+el.dataset.i];
+    if (el.dataset.k === 'name') { row.name = el.value; applyDraft(false); }
+    else timeInput(el, v => { row[el.dataset.k] = v; });
+  });
+  rowsEl.addEventListener('focusout', e => {
+    const el = e.target;
+    if (!draft || el.dataset.i == null || el.dataset.k === 'name' || !el.isConnected) return;
+    timeBlur(el, v => { draft.rows[+el.dataset.i][el.dataset.k] = v; });
+  });
+  rowsEl.addEventListener('focusin', e => {
+    const el = e.target;
+    if (draft && el.classList.contains('time')) selectAll(el);
+  });
+  rowsEl.addEventListener('click', e => {
+    const btn = e.target.closest('.del');
+    if (!draft || !btn) return;
+    draft.rows.splice(+btn.dataset.i, 1);
+    drawEditor();
+    applyDraft(true);
+  });
+  [[onEl, 'on'], [offEl, 'off']].forEach(([el, k]) => {
+    el.addEventListener('input', () => timeInput(el, v => { draft[k] = v; }));
+    el.addEventListener('blur', () => { if (draft) timeBlur(el, v => { draft[k] = v; }); });
+    el.addEventListener('focus', () => selectAll(el));
+  });
+  $('edit').addEventListener('click', openEditor);
+  $('add').addEventListener('click', () => {
+    if (draft.rows.length >= CO.MAX_BREAKS) return;
+    draft.rows.push({ s: '', e: '', name: '' });
+    drawEditor(draft.rows.length - 1);
+  });
+  $('reset').addEventListener('click', () => {
+    draft = toDraft(CO.DEFAULTS);
+    drawEditor();
+    applyDraft(true);
+  });
+  $('done').addEventListener('click', closeEditor);
+
+  // ---------------------------------------------------------------- 开始、结束
+  [startEl, endEl].forEach(el => {
+    el.addEventListener('focus', () => selectAll(el));
     el.addEventListener('input', () => {
       const masked = CO.maskTime(el.value);
       if (masked !== el.value) {
@@ -487,7 +790,9 @@ const CO = (() => {
   nextEl.addEventListener('change', () => { userEdit(); render(); save(); });
   fixEl.addEventListener('click', () => { nextEl.checked = true; userEdit(); render(); save(); });
 
-  const saved = load();
+  const rules = load(RULES_KEY);
+  if (rules) CO.setRules(rules);                        // 存坏了就当没存，用默认
+  const saved = load(KEY);
   if (saved) {
     startEl.value = typeof saved.start === 'string' ? saved.start : '';
     endEl.value = typeof saved.end === 'string' ? saved.end : '';
